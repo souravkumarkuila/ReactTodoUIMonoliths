@@ -1,8 +1,59 @@
-trigger: none 
-pool: Default
+trigger: none
 
-steps: 
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: 'Write-Host "Hello World"'
+pool: todopool
+
+stages:
+- stage: BuildAndPackage
+  displayName: Build & Artifact Packaging
+
+  jobs:
+  -  job: 
+     steps:
+     - task: NodeTool@0
+       inputs:
+         versionSource: 'spec'
+         versionSpec: '16.x'
+     - task: PowerShell@2
+       inputs:
+         targetType: 'inline'
+         script: 'npm i'
+
+     - task: PowerShell@2
+       inputs:
+         targetType: 'inline'
+         script: 'npm run build'
+
+     - task: PublishPipelineArtifact@1
+       inputs:
+         targetPath: '$(System.DefaultWorkingDirectory)/build/'
+         artifact: 'souravtodo'
+         publishLocation: 'pipeline'
+
+
+- stage: DeployToDev
+  # condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+  displayName: Deploy To Dev VM
+  jobs:
+  - job: deploy
+    displayName: Deployement
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'souravtodo'
+        targetPath: '$(System.DefaultWorkingDirectory)/build_artifacts'
+
+    - task: CopyFilesOverSSH@0
+      inputs:
+        sshEndpoint: 'todoserviceconnect'
+        sourceFolder: '$(System.DefaultWorkingDirectory)/build_artifacts'
+        contents: '**'
+        targetFolder: '/home/souravfrontendvm'
+        readyTimeout: '20000'
+
+    - task: SSH@0
+      inputs:
+        sshEndpoint: 'todoserviceconnect'
+        runOptions: 'commands'
+        commands: 'sudo cp -r /home/souravfrontendvm/* /var/www/html'
+        readyTimeout: '20000'
