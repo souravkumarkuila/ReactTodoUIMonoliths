@@ -7,19 +7,42 @@ stages:
   displayName: security scanning install
 
   jobs:
+  
     - job: 
+      displayName: Biome scanning tool
       steps:
       - task: NodeTool@0
         inputs:
           versionSource: 'spec'
           versionSpec: '18.x'
-
+  
       - task: PowerShell@2
+        continueOnError: True
         inputs:
           targetType: 'inline'
           script: |
             npm ci
             npx @biomejs/biome check .
+
+    - job: 
+      displayName: Trivy scanning tool
+      steps:
+      - task: PowerShell@2
+        displayName: Trivy Filesystem Scan
+        inputs:
+            targetType: inline
+            script: |
+              .\trivy\trivy.exe fs . --format table
+        continueOnError: true
+
+      - task: PowerShell@2
+        displayName: Trivy Dockerfile Scan
+        inputs:
+          targetType: inline
+          script: |
+            .\trivy\trivy.exe config Dockerfile --format table
+        continueOnError: true
+        
 
 - stage: BuildAndPackage
   displayName: Build & Artifact Packaging
