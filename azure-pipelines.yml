@@ -111,25 +111,38 @@ stages:
             npm ci
             npx @biomejs/biome check .
 
-    - job: 
-      displayName: Trivy scanning tool
+- stage: TrivyScan
+  displayName: Trivy Security Scan
+  jobs:
+    - job: Trivy
+      displayName: FS + Dockerfile (Trivy Scan)
       steps:
-      - task: PowerShell@2
-        displayName: Trivy Filesystem Scan
-        inputs:
+        - checkout: self
+        - task: PowerShell@2
+          displayName: Install Trivy
+          inputs:
+            targetType: inline
+            script: |
+              $version = "0.68.2"
+              $url = "https://github.com/aquasecurity/trivy/releases/download/v$version/trivy_${version}_windows-64bit.zip"
+
+              Invoke-WebRequest -Uri $url -OutFile trivy.zip
+              Expand-Archive trivy.zip -DestinationPath trivy -Force
+              .\trivy\trivy.exe --version
+        - task: PowerShell@2
+          displayName: Trivy Filesystem Scan
+          inputs:
             targetType: inline
             script: |
               .\trivy\trivy.exe fs . --format table
-        continueOnError: true
-
-      - task: PowerShell@2
-        displayName: Trivy Dockerfile Scan
-        inputs:
-          targetType: inline
-          script: |
-            .\trivy\trivy.exe config Dockerfile --format table
-        continueOnError: true
-        
+          continueOnError: true
+        - task: PowerShell@2
+          displayName: Trivy Dockerfile Scan
+          inputs:
+            targetType: inline
+            script: |
+              .\trivy\trivy.exe config Dockerfile --format table
+          continueOnError: true
 
 - stage: BuildAndPackage
   displayName: Build & Artifact Packaging
