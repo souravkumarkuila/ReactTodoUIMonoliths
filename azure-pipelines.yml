@@ -38,6 +38,58 @@ stages:
           npx @biomejs/biome check .
         displayName: Biome Lint
         continueOnError: true
+
+  - job: StylelintLint
+    displayName: CSS/SCSS Linting (Stylelint)
+    steps:
+      - checkout: self
+      - task: PowerShell@2
+        continueOnError: true
+        displayName: Stylelint
+        inputs:
+          targetType: 'inline'
+          script: |
+            npm install --no-save stylelint stylelint-config-standard
+            npx stylelint "**/*.{css,scss}"
+
+  - job: DotenvScan
+    displayName: .env Linting (Dotenv-Linter)
+    steps:
+      - checkout: self
+
+      - script: |
+          npm install --save-dev dotenv-linter
+        displayName: 'Install Dotenv Linter'
+      - script: |
+          npx dotenv-linter -- .env
+        displayName: 'Run Dotenv Linter (.env)'
+        continueOnError: true
+
+  - job: Markdownlint
+    displayName: .md Linting (Markdownlint)
+    steps:
+      - checkout: self
+      - task: PowerShell@2
+        continueOnError: true
+        displayName: Markdown Linting (markdownlint)      
+        inputs:
+          targetType: 'inline'
+          script: |
+              npm install --save-dev markdownlint-cli   
+              markdownlint $(System.DefaultWorkingDirectory)/
+
+  - job: YAMLLint
+    displayName: yaml Linting (yamllint)
+    steps:
+      - checkout: self
+      - task: PowerShell@2
+        continueOnError: true
+        displayName: yamllint
+        inputs:
+          targetType: 'inline'
+          script: |
+            python -m pip install yamllint
+            python -m yamllint $(System.DefaultWorkingDirectory)
         
 - stage: Securityscanning
   displayName: security scanning install
