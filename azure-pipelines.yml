@@ -3,6 +3,22 @@ trigger: none
 pool: todopool
 
 stages:
+
+- stage: SoftwareCompositionAnalysis
+  displayName: Dependency Security
+  jobs: 
+    - job: DepVulnScan
+      displayName: Retire.js Scan
+      steps: 
+      - task: PowerShell@2
+        displayName: Run Dependency Security Scan
+        inputs:
+          targetType: 'inline'
+          script: |
+            npm install -g retire
+            npm install
+            retire --exitwith 0
+
 - stage: Securityscanning
   displayName: security scanning install
 
