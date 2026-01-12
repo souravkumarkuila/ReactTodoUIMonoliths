@@ -7,7 +7,6 @@ stages:
   displayName: security scanning install
 
   jobs:
-  
     - job: 
       displayName: Biome scanning tool
       steps:
