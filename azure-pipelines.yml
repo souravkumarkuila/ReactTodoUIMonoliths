@@ -19,6 +19,26 @@ stages:
             npm install
             retire --exitwith 0
 
+- stage: CodeQualityChecks
+  displayName: Code Quality & Linting
+  jobs:
+  
+  - job: BiomeLint
+    displayName: JavaScript Linting (Biome)
+    steps:
+      - checkout: self      
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Use Node.js 18'
+      - script: |
+          npm ci
+        displayName: 'Install dependencies'
+      - script: |
+          npx @biomejs/biome check .
+        displayName: Biome Lint
+        continueOnError: true
+        
 - stage: Securityscanning
   displayName: security scanning install
 
