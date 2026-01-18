@@ -1,9 +1,6 @@
 trigger: none
-
 pool: todoapppool
-
 stages:
-
 - stage: SoftwareCompositionAnalysis
   displayName: Dependency Security
   jobs: 
